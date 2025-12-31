@@ -1,0 +1,368 @@
+Technology Stack
+Frontend: React
+Backend: SpringBoot(Microservices)
+LoadBalancer: AWS (Application Load Balancer)
+Messaging : Apache Kafka
+Database : SQL, MongoDB
+CI/CD: GIT, Jenkins, Docker
+Cloud: AWS [ECS/EKS,RDS,MSK,S3]
+
+Design Pattern:
+Database Pattern
+
+
+
+
+Creating a comprehensive database for construction management involves numerous tables to manage various aspects of a project, from initial planning to completion and financial oversight.
+
+Here's a breakdown of essential tables and their key columns for a construction management database:
+
+Core Entities:
+'USERS Stores main user account details.
+| Column        | Type                                | Description        |
+| ------------- | ----------------------------------- | ------------------ |
+| user_id (PK)  | BIGINT                              | Auto-increment     |
+| first_name    | VARCHAR(100)                        |                    |
+| last_name     | VARCHAR(100)                        |                    |
+| email         | VARCHAR(150) UNIQUE                 | Login username     |
+| phone         | VARCHAR(20)                         |                    |
+| password_hash | VARCHAR(255)                        | Encrypted password |
+| status        | ENUM('ACTIVE','INACTIVE','BLOCKED') | User status        |
+| created_at    | DATETIME                            |                    |
+| updated_at    | DATETIME                            |                    |
+
+'ROLES
+| role_id (PK) | role_name (UNIQUE) |
+| ------------ | ------------------ |
+| 1            | ADMIN              |
+| 2            | PROJECT_MANAGER    |
+| 3            | ENGINEER           |
+| 4            | SUPERVISOR         |
+| 5            | WORKER             |
+| 6            | CLIENT             |
+
+user_roles (Many-to-Many)
+| user_id (FK users) | role_id (FK roles) |
+| permission_id | permission_key       |
+| ------------- | -------------------- |
+| 1             | PROJECT_CREATE       |
+| 2             | MATERIAL_APPROVE     |
+| 3             | WORK_PROGRESS_UPDATE |
+| ...           | ...                  |
+
+role_permissions
+| role_id (FK) | permission_id (FK) |
+
+user_login_log
+| log_id | user_id | login_time | login_ip | device_info | status (SUCCESS/FAILED) |
+
+LOGIN / SIGNUP FLOW
+User Signup
+
+Insert into users
+
+Insert default role into user_roles (CLIENT or WORKER)
+
+Hash password before saving
+
+User Login
+Validate email
+Compare password hash
+Create authentication token (JWT)
+Store entry in user_login_log
+
+
+
+Projects Table
+
+project_id (PK, INT)
+project_name (VARCHAR)
+client_id (FK to Clients.client_id, INT)
+start_date (DATE)
+end_date_planned (DATE)
+end_date_actual (DATE)
+status (VARCHAR - e.g., 'Planned', 'In Progress', 'On Hold', 'Completed', 'Cancelled')
+budget_allocated (DECIMAL)
+project_manager_id (FK to Employees.employee_id, INT)
+project_address (VARCHAR)
+city (VARCHAR)
+state (VARCHAR)
+zip_code (VARCHAR)
+description (TEXT)
+
+Clients Table
+
+client_id (PK, INT)
+client_name (VARCHAR)
+contact_person (VARCHAR)
+contact_email (VARCHAR)
+contact_phone (VARCHAR)
+address (VARCHAR)
+city (VARCHAR)
+state (VARCHAR)
+zip_code (VARCHAR)
+company_details (TEXT - e.g., legal structure, registration no.)
+
+Employees Table
+
+employee_id (PK, INT)
+first_name (VARCHAR)
+last_name (VARCHAR)
+role (VARCHAR - e.g., 'Project Manager', 'Site Engineer', 'Accountant', 'Laborer')
+contact_email (VARCHAR)
+contact_phone (VARCHAR)
+address (VARCHAR)
+date_of_hire (DATE)
+salary_rate (DECIMAL)
+is_active (BOOLEAN)
+emergency_contact_name (VARCHAR)
+emergency_contact_phone (VARCHAR)
+
+Financial Management:
+
+Cost_Codes Table (For categorizing expenses across projects)
+
+cost_code_id (PK, INT)
+code (VARCHAR - e.g., '01-0000' for General Requirements, '02-0000' for Site Construction)
+description (VARCHAR)
+category (VARCHAR - e.g., 'Labor', 'Materials', 'Equipment', 'Subcontractor')
+
+Project_Costs Table (Actual expenses per project)
+
+cost_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+cost_code_id (FK to Cost_Codes.cost_code_id, INT)
+amount (DECIMAL)
+date_incurred (DATE)
+description (TEXT)
+invoice_received_id (FK to Invoices_Received.invoice_id, INT, NULLABLE)
+paid_by_employee_id (FK to Employees.employee_id, INT, NULLABLE)
+
+Invoices_Received Table (Invoices from suppliers/subcontractors)
+
+invoice_id (PK, INT)
+supplier_id (FK to Suppliers.supplier_id or Subcontractors.subcontractor_id, INT)
+project_id (FK to Projects.project_id, INT)
+invoice_number (VARCHAR)
+invoice_date (DATE)
+due_date (DATE)
+amount_due (DECIMAL)
+amount_paid (DECIMAL)
+payment_status (VARCHAR - e.g., 'Pending', 'Paid', 'Partially Paid')
+date_paid (DATE, NULLABLE)
+payment_method (VARCHAR, NULLABLE)
+description (TEXT)
+
+Invoices_Sent Table (Invoices sent to clients)
+
+invoice_sent_id (PK, INT)
+client_id (FK to Clients.client_id, INT)
+project_id (FK to Projects.project_id, INT)
+invoice_number (VARCHAR)
+invoice_date (DATE)
+due_date (DATE)
+amount_billed (DECIMAL)
+amount_received (DECIMAL)
+status (VARCHAR - e.g., 'Pending', 'Paid', 'Overdue')
+date_received (DATE, NULLABLE)
+description (TEXT)
+
+
+Payments_Made Table (Recording payments to suppliers/subcontractors/employees)
+
+payment_id (PK, INT)
+invoice_received_id (FK to Invoices_Received.invoice_id, INT, fNULLABLE)
+employee_id (FK to Employees.employee_id, INT, NULLABLE - for salary/reimbursements)
+amount (DECIMAL)
+payment_date (DATE)
+payment_method (VARCHAR - e.g., 'Bank Transfer', 'Cheque', 'Cash')
+bank_account_id (FK to Company_Bank_Accounts.account_id, INT)
+description (TEXT)
+
+Resource Management:
+
+Materials Table
+
+material_id (PK, INT)
+material_name (VARCHAR)
+unit_of_measure (VARCHAR - e.g., 'kg', 'meter', 'piece', 'cubic meter')
+unit_cost (DECIMAL)
+description (TEXT)
+
+Material_Requests Table (Materials needed for a project/task)
+
+request_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+material_id (FK to Materials.material_id, INT)
+quantity_requested (DECIMAL)
+date_requested (DATE)
+status (VARCHAR - e.g., 'Pending', 'Approved', 'Ordered', 'Delivered')
+requested_by_employee_id (FK to Employees.employee_id, INT)
+supplier_id (FK to Suppliers.supplier_id, INT, NULLABLE)
+
+Material_Deliveries Table (Tracking delivered materials)
+
+delivery_id (PK, INT)
+request_id (FK to Material_Requests.request_id, INT)
+material_id (FK to Materials.material_id, INT)
+quantity_delivered (DECIMAL)
+date_delivered (DATE)
+delivery_note_number (VARCHAR)
+received_by_employee_id (FK to Employees.employee_id, INT)
+quality_check_status (VARCHAR - e.g., 'OK', 'Damaged', 'Shortage')
+
+Equipment Table
+
+equipment_id (PK, INT)
+equipment_name (VARCHAR)
+type (VARCHAR - e.g., 'Excavator', 'Crane', 'Drill')
+model (VARCHAR)
+serial_number (VARCHAR)
+purchase_date (DATE)
+cost (DECIMAL)
+current_status (VARCHAR - e.g., 'Available', 'In Use', 'Under Maintenance')
+last_maintenance_date (DATE)
+next_maintenance_date (DATE)
+
+Equipment_Assignments Table
+
+assignment_id (PK, INT)
+equipment_id (FK to Equipment.equipment_id, INT)
+project_id (FK to Projects.project_id, INT)
+assigned_from_date (DATE)
+assigned_to_date (DATE)
+assigned_by_employee_id (FK to Employees.employee_id, INT)
+meter_reading_start (DECIMAL)
+meter_reading_end (DECIMAL)
+usage_hours (DECIMAL)
+Task & Schedule Management:
+
+Tasks Table (Work Breakdown Structure elements)
+
+task_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+task_name (VARCHAR)
+parent_task_id (FK to Tasks.task_id, INT, NULLABLE - for hierarchical tasks)
+description (TEXT)
+planned_start_date (DATE)
+planned_end_date (DATE)
+actual_start_date (DATE, NULLABLE)
+actual_end_date (DATE, NULLABLE)
+status (VARCHAR - e.g., 'Not Started', 'In Progress', 'Completed', 'Blocked')
+assigned_to_employee_id (FK to Employees.employee_id, INT, NULLABLE)
+assigned_to_subcontractor_id (FK to Subcontractors.subcontractor_id, INT, NULLABLE)
+progress_percentage (INT - 0-100)
+
+Schedules Table (Project timelines with milestones)
+
+schedule_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+milestone_name (VARCHAR)
+planned_date (DATE)
+actual_date (DATE, NULLABLE)
+status (VARCHAR - e.g., 'On Time', 'Delayed', 'Completed')
+description (TEXT)
+
+Partners & Vendors Module:
+
+Suppliers Table
+
+supplier_id (PK, INT)
+supplier_name (VARCHAR)
+contact_person (VARCHAR)
+contact_email (VARCHAR)
+contact_phone (VARCHAR)
+address (VARCHAR)
+material_specialty (VARCHAR - e.g., 'Steel', 'Cement', 'Electrical')
+Subcontractors Table
+
+subcontractor_id (PK, INT)
+company_name (VARCHAR)
+contact_person (VARCHAR)
+contact_email (VARCHAR)
+contact_phone (VARCHAR)
+address (VARCHAR)
+specialty (VARCHAR - e.g., 'Plumbing', 'Electrical', 'HVAC', 'Foundation')
+license_number (VARCHAR)
+
+Documentation & Reporting:
+
+Documents Table
+
+document_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+document_type (VARCHAR - e.g., 'Contract', 'Drawing', 'Permit', 'Report', 'Photo')
+file_name (VARCHAR)
+file_path_or_url (VARCHAR)
+upload_date (DATETIME)
+uploaded_by_employee_id (FK to Employees.employee_id, INT)
+description (TEXT)
+version (VARCHAR)
+
+Daily_Logs Table
+
+log_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+log_date (DATE)
+logged_by_employee_id (FK to Employees.employee_id, INT)
+weather_conditions (VARCHAR)
+site_visitors (TEXT)
+work_completed_today (TEXT)
+issues_identified (TEXT)
+materials_received (TEXT)
+equipment_on_site (TEXT)
+manpower_on_site (INT)
+notes (TEXT)
+
+Quality & Safety Module:
+
+Safety_Incidents Table
+
+incident_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+incident_date (DATETIME)
+reported_by_employee_id (FK to Employees.employee_id, INT)
+type_of_incident (VARCHAR - e.g., 'Injury', 'Near Miss', 'Property Damage')
+description (TEXT)
+severity (VARCHAR - e.g., 'Low', 'Medium', 'High')
+actions_taken (TEXT)
+root_cause (TEXT)
+status (VARCHAR - 'Open', 'Closed')
+
+Quality_Checks Table
+
+check_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+task_id (FK to Tasks.task_id, INT, NULLABLE)
+check_date (DATE)
+checked_by_employee_id (FK to Employees.employee_id, INT)
+item_checked (VARCHAR)
+result (VARCHAR - e.g., 'Pass', 'Fail', 'Conditional Pass')
+observations (TEXT)
+remediation_required (BOOLEAN)
+remediation_description (TEXT, NULLABLE)
+
+Change Management Module:
+
+Change_Orders Table
+
+change_order_id (PK, INT)
+project_id (FK to Projects.project_id, INT)
+change_order_number (VARCHAR)
+request_date (DATE)
+description_of_change (TEXT)
+reason_for_change (TEXT)
+cost_impact (DECIMAL)
+schedule_impact_days (INT)
+status (VARCHAR - e.g., 'Pending', 'Approved', 'Rejected', 'Implemented')
+approved_by_client_id (FK to Clients.client_id, INT, NULLABLE)
+approval_date (DATE, NULLABLE)
+Supporting/Lookup Tables (Optional but Recommended):
+
+
+
+
+Company_Bank_Accounts: For managing internal company bank accounts.
+User_Accounts: If your system has user logins, distinct from Employees.
+Roles_Permissions: For granular access control if multiple users manage the database.
+Units_of_Measure: A lookup for unit_of_measure in Materials to ensure consistency.
