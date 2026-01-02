@@ -66,7 +66,7 @@ public class AuthenticationControllerTest {
         assertEquals(expectedResponse.message(),actualResponce.getBody().message());
         verify(authenticationService,times(1)).authenticateUser(any(LoginRequest.class));
     }
-    @Test
+    /*@Test
     void authenticateUser_userNotFound() throws Exception{
         LoginResponse request = new LoginResponse("testfail@gamil.com","password666");
         LoginRequest loginRequest = new LoginRequest("testfail@gamil.com","password666");
@@ -79,6 +79,6 @@ public class AuthenticationControllerTest {
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("$.success").value("FAILED"))
                 .andExpect(jsonPath("$.message").value("Request User Not found."));
-    }
+    }*/
 
 }

@@ -11,7 +11,7 @@
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="CONSTRUCTION-MANAGEMENT" target="18" />
+      <module name="CONSTRUCTION-MANAGEMENT" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

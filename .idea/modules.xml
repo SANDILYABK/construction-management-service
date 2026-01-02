@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/CONSTRUCTION-MANAGEMENT/CONSTRUCTION-MANAGEMENT.iml" filepath="$PROJECT_DIR$/CONSTRUCTION-MANAGEMENT/CONSTRUCTION-MANAGEMENT.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/construction-management-service.iml" filepath="$PROJECT_DIR$/.idea/construction-management-service.iml" />
+      <module fileurl="file://$PROJECT_DIR$/CONSTRUCTION-MANAGEMENT.iml" filepath="$PROJECT_DIR$/CONSTRUCTION-MANAGEMENT.iml" />
     </modules>
   </component>
 </project>
